@@ -1,0 +1,198 @@
+role user(Ui,GWj,SNk:agent,
+UGKeyij:symmetric_key,
+SGKeykj:symmetric_key,
+H:hash_func,
+Snd,Rcv:channel(dy))
+played_by Ui
+def=
+local State:nat,
+UIDi,UPWi,UBIOi,URSi,UBTi,UR2i,GIDj,GPrij,GPubj,UPrii,UPubi,SPrik,SPubk,SSeck,Srk,SIDk,Auth1ij,Auth3jk,Auth5kj,Auth7ji,SKik,Gr2j,SR5k:text,
+UR1i,UR3i,Uri,UR4j,UR5j,Gr1j,SR1k,SR2k,SR3j,SR4j,Auth2ij,Auth4jk,Auth6kj,Auth8ji,URandi,GRandj,SRandk,CT1i,CT2j,CT3k,CT4j,Accessi:message,
+Inc:hash_func
+const
+user_gateway_UR3i,gateway_sensor_Auth4jk,sensor_gateway_Auth6kj,gateway_user_Auth8ji,
+user_gateway_Auth2ij,gateway_user_UR5j,sensor_gateway_SR2k,gateway_sensor_SR4j,
+subs1,subs2,subs3,subs4,subs5,subs6:protocol_id
+init State:=0
+transition
+1.State=0/\Rcv(start)=|>
+State':=1/\UBIOi':=new()
+/\UPWi':=new()
+/\URSi':=new()
+/\UBTi':=xor(URSi',UPWi')
+/\UR1i':=H(UIDi.UPWi'.UBIOi'.URSi')
+/\Uri':=new()
+/\UR2i':=H(GPubj.UGKeyij)
+/\UR3i':=H(UR1i.UR2i.xor(UGKeyij,Uri))
+/\Snd({UIDi.UR1i'.UR3i'.Uri'}_GPubj)
+/\witness(Ui,GWj,user_gateway_UR3i,UR3i)
+/\secret({UPWi',UBIOi',URSi',UBTi'},subs1,Ui)
+/\secret({UGKeyij},subs2,{Ui,GWj})
+2.State=1/\Rcv(UR4j'.UR5j'.Gr1j')=|>
+State':=2/\UPrii':=H({UR1i.UR5j'.xor(Uri,Gr1j')}_UBTi)
+/\UPubi':=H({UPrii.UR2i}_UBTi)
+/\CT1i':=new()
+/\URandi':=new()
+/\Accessi':={UIDi.URandi'.SIDk}_GPubj
+/\Auth1ij':=H(UR1i.UGKeyij.UPubi')
+/\Auth2ij':=H(Auth1ij.URandi.CT1i.UR5j)
+/\Snd(Accessi'.Auth2ij'.URandi.CT1i')
+/\witness(Ui,GWj,user_gateway_Auth2ij,Auth2ij)
+/\request(GWj,Ui,gateway_user_UR5j,UR5j)
+/\secret({UPrii'},subs3,Ui)
+3.State=2/\Rcv(Auth8ji'.CT4j'.SRandk'.GRandj')=|>
+State':=3/\Snd({xor(xor(UR3i,URandi),SRandk')}_SPubk)
+/\request(GWj,Ui,gateway_user_Auth8ji,Auth8ji)
+4.State=3/\Rcv({xor(xor(SR1k,SPubk),UPubi)}_UPrii)=|>
+State':=4/\SKik':=H(xor(H({xor(SRandk,UR3i)}_SR1k),H({xor(URandi,SR1k)}_UR3i)))
+end role
+
+
+
+role sensor(Ui,GWj,SNk:agent,
+UGKeyij:symmetric_key,
+SGKeykj:symmetric_key,
+H:hash_func,
+Snd,Rcv:channel(dy))
+played_by SNk
+def=
+local State:nat,
+UIDi,UPWi,UBIOi,URSi,UBTi,UR2i,GIDj,GPrij,GPubj,UPrii, UPubi,SPrik,SPubk,SSeck,Srk,SIDk,Auth1ij,Auth3jk,Auth5kj,Auth7ji,SKik, Gr2j,SR5k:text,
+UR1i,UR3i,Uri,UR4j,UR5j,Gr1j,SR1k,SR2k,SR3j,SR4j,Auth2ij,Auth4jk,Auth6kj,Auth8ji,URandi,GRandj,SRandk,CT1i,CT2j,CT3k,CT4j,Accessi:message,
+Inc:hash_func
+const
+user_gateway_UR3i,gateway_sensor_Auth4jk,sensor_gateway_Auth6kj,gateway_user_Auth8ji,
+user_gateway_Auth2ij,gateway_user_UR5j,sensor_gateway_SR2k,gateway_sensor_SR4j,
+subs1,subs2,subs3,subs4,subs5,subs6:protocol_id
+init State:=0
+transition
+1.State=0/\Rcv(start)=|>
+State':=1/\Srk':=new()
+/\SR1k':=H(SIDk.SSeck.Srk')
+/\SR5k':=H(GPubj.SGKeykj)
+/\SR2k':=H(SR1k'.SR5k'.xor(SGKeykj,GIDj))
+/\Snd({SIDk.SR1k'.SR2k'}_GPubj)
+/\witness(SNk,GWj,sensor_gateway_SR2k,SR2k)
+/\secret({SGKeykj},subs5,{SNk,GWj})
+2.State=1/\Rcv({SR3j'.SR4j'}_GPubj)=|>
+State':=2/\SPrik':=H({SR1k.SR4j'.xor(Srk,SSeck)}_SSeck)
+/\SPubk':=H({SPrik'.Srk}_SSeck)
+/\request(GWj,SNk,gateway_sensor_SR4j,SR4j)
+/\secret({SSeck,SPrik},subs6,{SNk})
+3.State=2/\Rcv(Auth4jk'.GRandj'.URandi'.CT2j')=|>
+State':=3/\CT3k':=new()
+/\SRandk':=new()
+/\Auth5kj':=H(Auth3jk.GPubj.xor(SR2k,SR4j))
+/\Auth6kj':=H(Auth5kj'.SRandk'.CT3k')
+/\Snd(Auth6kj'.SRandk'.CT3k')
+/\request(GWj,SNk,gateway_sensor_Auth4jk,Auth4jk)
+/\witness(SNk,GWj,sensor_gateway_Auth6kj,Auth6kj)
+4.State=3/\Rcv({xor(xor(UR3i,URandi),SRandk)}_SPrik)=|>
+State':=4/\SKik':=H(xor(H({xor(SRandk,UR3i)}_SR1k),H({xor(URandi,SR1k)}_UR3i)))
+/\Snd({xor(xor(SR1k,SPubk),UPubi)}_UPubi)
+end role
+
+
+
+
+role gateway(Ui,GWj,SNk:agent,
+UGKeyij:symmetric_key,
+SGKeykj:symmetric_key,
+H:hash_func,
+Snd,Rcv:channel(dy))
+played_by GWj
+def=
+local State:nat,
+UIDi,UPWi,UBIOi,URSi,UBTi,UR2i,GIDj,GPrij,GPubj,UPrii,UPubi,SPrik,SPubk,SSeck,Srk,SIDk,Auth1ij,Auth3jk,Auth5kj,Auth7ji,SKik,Gr2j,SR5k:text,
+UR1i,UR3i,Uri,UR4j,UR5j,Gr1j,SR1k,SR2k,SR3j,SR4j,Auth2ij,Auth4jk,Auth6kj,Auth8ji,URandi,GRandj,SRandk,CT1i,CT2j,CT3k,CT4j,Accessi:message,
+Inc:hash_func
+const
+user_gateway_UR3i,gateway_sensor_Auth4jk,sensor_gateway_Auth6kj,gateway_user_Auth8ji,
+user_gateway_Auth2ij,gateway_user_UR5j,sensor_gateway_SR4j,gateway_sensor_SR2k,
+subs1,subs2,subs3,subs4,subs5,subs6:protocol_id
+init State:=0
+transition
+1.State=0/\Rcv(start)=|>
+State':=1/\GPrij':=new()
+/\GPubj':=new()
+/\secret({GPrij'},subs4,GWj)
+2.State=1/\Rcv({UIDi.UR1i'.UR3i'.Uri'}_GPrij)=|>
+State':=2/\Gr1j':=new()
+/\UR4j':=H(UR1i'.GIDj.GPrij)
+/\UR5j':=H(UR4j'.UR3i'.xor(xor(UGKeyij,GPubj),Gr1j'))
+/\Snd(UR4j'.UR5j'.Gr1j')
+/\request(Ui,GWj,user_gateway_UR3i,UR3i)
+/\witness(GWj,Ui,gateway_user_UR5j,UR5j)
+3.State=2/\Rcv({SIDk.SR1k'.SR2k'}_GPrij)=|>
+State':=3/\Gr2j':=new()
+/\SR3j':=H(SR2k'.Gr2j'.GPrij)
+/\SR4j':=H(SR3j'.SR1k'.xor(xor(GIDj.Gr2j'),GPubj))
+/\Snd({SR3j'.SR4j'.Gr2j'}_GPrij)
+/\request(SNk,GWj,sensor_gateway_SR2k,SR2k)
+/\witness(GWj,SNk,gateway_sensor_SR4j,SR4j)
+4.State=3/\Rcv(Accessi'.Auth2ij'.URandi'.CT1i')=|>
+State':=4/\CT2j':=new()
+/\GRandj':=new()
+/\Auth3jk':=H(SR2k.SGKeykj.SPubk.URandi)
+/\Auth4jk':=H(Auth3jk'.GRandj'.CT2j'.SR4j)
+/\Snd(Auth4jk'.GRandj'.URandi'.CT2j)
+/\request(Ui,GWj,user_gateway_Auth2ij,Auth2ij)
+/\witness(GWj,SNk,gateway_sensor_Auth4jk,Auth4jk)
+5.State=4/\Rcv(Auth6kj'.SRandk'.CT3k')=|>
+State':=5/\CT4j':=new()
+/\Auth7ji':=H(Auth1ij.GPubj.xor(UR1i,UR5j))
+/\Auth8ji':=H(Auth7ji'.GRandj.SRandk'.CT4j')
+/\Snd(Auth8ji'.GRandj.SRandk'.CT4j')
+/\request(SNk,GWj,sensor_gateway_Auth6kj,Auth6kj)
+/\witness(GWj,Ui,gateway_user_Auth8ji,Auth8ji)
+end role
+
+
+
+
+role session(Ui,GWj,SNk:agent,
+UGKeyij:symmetric_key,
+SGKeykj:symmetric_key,
+H:hash_func)
+def=
+local US,UR,SS,SR,GS,GR:channel(dy)
+composition
+user(Ui,GWj,SNk,UGKeyij,SGKeykj,H,US,UR)
+/\sensor(Ui,GWj,SNk,UGKeyij,SGKeykj,H,US,SR)
+/\gateway(Ui,GWj,SNk,UGKeyij,SGKeykj,H,GS,GR)
+end role
+role environment()
+def=
+const ui,gwj,snk:agent,
+ugkeyij:symmetric_key,
+sgkeykj:symmetric_key,
+h:hash_func,
+uidi,upwi,ubioi,ursi,ubti,ur2i,gidj,gprij,gpubj,uprii,upubi,sprik,spubk,sseck,srk,sidk,auth1ij,
+auth3jk,auth5kj,auth7ji,skik,gr2j,sr5k:text,
+ur1i,ur3i,uri,ur4j,ur5j,gr1j,sr1k,sr2k,sr3j,sr4j,auth2ij,auth4jk,auth6kj,auth8ji,urandi,grandj,srandk,ct1i,ct2j,ct3k,ct4j,accessi:message,
+user_gateway_UR3i,gateway_sensor_Auth4jk,sensor_gateway_Auth6kj,gateway_user_Auth8ji,
+user_gateway_Auth2ij,gateway_user_UR5j,sensor_gateway_SR4j,gateway_sensor_SR2k,
+subs1,subs2,subs3,subs4,subs5,subs6:protocol_id
+intruder_knowledge={ui,gwj,snk,h,auth2ij,auth4jk,auth6kj,auth8ji,urandi,srandk,grandj,ct1i,ct2j,ct3k,ct4j}
+composition
+session(ui,gwj,snk,ugkeyij,sgkeykj,h)
+/\session(ui,gwj,snk,ugkeyij,sgkeykj,h)
+/\session(ui,gwj,snk,ugkeyij,sgkeykj,h)
+end role
+goal
+secrecy_of subs1
+secrecy_of subs2
+secrecy_of subs3
+secrecy_of subs4
+secrecy_of subs5
+secrecy_of subs6
+authentication_on user_gateway_UR3i
+authentication_on gateway_sensor_Auth4jk
+authentication_on sensor_gateway_Auth6kj
+authentication_on gateway_user_Auth8ji
+authentication_on user_gateway_Auth2ij
+authentication_on gateway_user_UR5j
+authentication_on sensor_gateway_SR2k
+authentication_on gateway_sensor_SR4j
+end goal
+environment()

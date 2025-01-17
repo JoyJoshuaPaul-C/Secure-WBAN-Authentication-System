@@ -1,0 +1,83 @@
+role admin(SA,SN,HN:agent,SK:symmetric_key,SND,RCV:channel(dy),KHN,KN,IDN:text,H:hash_func)
+played_by SA
+def=
+        local State:nat,AN,BN:text
+        const secKHN,secIDN,secKN,sn_hn_beta,hn_sn_tidn:protocol_id
+        init State:=0
+        transition
+        1.State=0 /\ RCV(start) =|> State':=1
+          /\AN':=xor(IDN,H(KHN.KN))
+          /\BN':=xor(xor(KHN,KN),AN')
+          /\SND({IDN.AN'.BN'}_SK)
+end role
+
+role snode(SA,SN,HN:agent,SK:symmetric_key,SND,RCV:channel(dy),H:hash_func)
+played_by SN
+def=
+       local State:nat,IDN,AN,BN,RN,TN,XN,YN,TIDN,ALPHA,BETA,GAMMA,ETA,MU,FN,ANnew,BNnew,KN,KHN,KS:text
+       const secKHN,secIDN,secKN,sn_hn_beta,hn_sn_tidn:protocol_id
+       init State:=0
+       transition
+       1.State=0 /\ RCV({IDN'.AN'.BN'}_SK) =|> State':=1
+         /\RN':=new() /\ TN':=new()
+         /\XN':= xor(AN',IDN')
+         /\YN':=xor(XN',RN')
+         /\TIDN':=H(xor(IDN',TN').RN')
+         /\witness(SN,HN,hn_sn_tidn,TIDN')
+         /\SND(TIDN'.YN'.AN'.BN'.TN')
+
+       2.State=1 /\ RCV(ALPHA'.BETA'.ETA'.MU') =|> State':=2
+         /\FN':=xor(XN,ALPHA')
+         /\BETA':=H(XN.RN.FN'.ETA'.MU') /\ request(SN,HN,sn_hn_beta,BETA')
+         /\GAMMA':=xor(RN,FN') /\ ANnew':=xor(GAMMA',ETA')
+         /\BNnew':=xor(GAMMA',MU') /\ KS':=H(IDN.RN.FN'.XN)
+         /\AN':=ANnew' /\ BN':=BNnew' /\ secret(KN,secKN,{SA,HN}) /\ secret(KHN,secKHN,{SA,HN}) /\ secret(IDN,secIDN,{SA,SN,HN})
+end role
+
+role hnode(SA,SN,HN:agent,SK:symmetric_key,SND,RCV:channel(dy),H:hash_func)
+played_by HN
+def=
+       local State:nat,IDN,TIDN,YN,AN,BN,TN,KN,KHN,XN,RN,FN,ALPHA,BETA,GAMMA,ETA,MU,TKN,KS:text
+       const secKHN,secKN,secIDN,sn_hn_beta,hn_sn_tidn:protocol_id
+       init State:=0
+       transition
+       1.State=0 /\ RCV(TIDN'.YN'.AN'.BN'.TN') =|> State':=1
+         /\KN':=xor(xor(KHN,BN),AN)
+         /\XN':=H(KHN.KN')
+         /\IDN':=xor(AN',XN') /\ RN':=xor(YN',XN')
+         /\TIDN':=H(xor(IDN',TN').RN') /\ request(HN,SN,hn_sn_tidn,TIDN')
+         /\FN':=new() /\ ALPHA':=xor(XN',FN') /\ GAMMA':=xor(RN',FN')
+         /\TKN':=new() /\ AN':=xor(IDN',H(KHN.TKN))
+         /\BN':=xor(xor(KHN,TKN),AN') /\ ETA':=xor(GAMMA',AN')
+         /\MU':=xor(GAMMA',BN') /\ BETA':=H(XN'.RN'.FN'.ETA'.MU')
+         /\witness(HN,SN,sn_hn_beta,BETA') /\ KS':=H(IDN'.RN'.FN'.XN')
+         /\SND(ALPHA'.BETA'.ETA'.MU') /\ secret(KN,secKN,{SA,HN}) /\ secret(KHN,secKHN,{SA,HN}) /\ secret(IDN,secIDN,{SA,SN,HN})
+end role
+
+role session(SA,SN,HN:agent,SK:symmetric_key,KHN,KN,IDN:text,H:hash_func)
+def=
+       local
+           SND3,RCV3,SND2,RCV2,SND1,RCV1:channel(dy)
+       composition
+           admin(SA,SN,HN,SK,SND3,RCV3,KHN,KN,IDN,H) /\ hnode(SA,SN,HN,SK,SND2,RCV2,H) /\ snode(SA,SN,HN,SK,SND1,RCV1,H)
+end role
+
+role environment()
+def=
+      const sa,sn,hn:agent,
+            khn,kn,idn:text,
+            sk:symmetric_key,
+            h:hash_func,
+            seckn,seckhn,secidn,sn_hn_beta,hn_sn_tidn:protocol_id
+      intruder_knowledge={sa,sn,hn}
+      composition
+            session(sa,sn,hn,sk,khn,kn,idn,h)
+end role
+goal
+     secrecy_of secKHN
+     secrecy_of secKN
+     secrecy_of secIDN
+     authentication_on sn_hn_beta
+     authentication_on hn_sn_tidn
+end goal
+environment()
